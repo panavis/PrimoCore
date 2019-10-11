@@ -19,9 +19,9 @@ public abstract class WordParagraph {
         WordPreprocessor wordPreprocessor = new WordPreprocessor(wordFilePath);
         this.paragraphWrappers = wordPreprocessor.getNonEmptyParagraphs();
         this.postParagraphBlanks = wordPreprocessor.getPostParagraphBlanks();
-        this.numberedParagraphs = WordPreprocessor.getNumberedParagraphs(this.paragraphWrappers);
-        this.unitNumberings = wordPreprocessor.getUnitNumberings(this.paragraphWrappers);
-        this.paragraphTexts = wordPreprocessor.getParagraphTexts(this.numberedParagraphs, this.unitNumberings);
+        this.numberedParagraphs = wordPreprocessor.getNumberedParagraphs();
+        this.unitNumberings = wordPreprocessor.getUnitNumberings();
+        this.paragraphTexts = wordPreprocessor.getParagraphTexts();
         this.paragraphTextsWithoutNumbering = wordPreprocessor.getParagraphTextsWithoutNumbering();
     }
 

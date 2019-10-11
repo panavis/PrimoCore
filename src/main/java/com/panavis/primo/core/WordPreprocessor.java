@@ -15,16 +15,16 @@ import java.util.stream.Collectors;
 public class WordPreprocessor {
 
     private final XWPFDocument wordDocument;
+    private final List<ParagraphWrapper> paragraphWrappers;
+    private final Map<Integer, Boolean> numberedParagraphs;
+    private final Map<Integer, UnitNumbering> unitNumberings;
 
-    WordPreprocessor(String wordFilePath) {
+    public WordPreprocessor(String wordFilePath) {
+
         wordDocument = createWordDocumentObject(wordFilePath);
-    }
-
-    public List<ParagraphWrapper> getNonEmptyParagraphs() {
-        List<ParagraphWrapper> bodyElements = getRawParagraphs();
-        return bodyElements.stream()
-                .filter(WordPreprocessor::paragraphHasContent)
-                .collect(Collectors.toList());
+        paragraphWrappers = getNonEmptyParagraphs(wordDocument);
+        numberedParagraphs = getNumberedParagraphs(paragraphWrappers);
+        unitNumberings = getUnitNumberings(wordDocument, paragraphWrappers);
     }
 
     private static XWPFDocument createWordDocumentObject(String wordFilePath) {
@@ -44,10 +44,21 @@ public class WordPreprocessor {
         return wordDoc;
     }
 
-    private List<ParagraphWrapper> getRawParagraphs() {
+    public static List<ParagraphWrapper> getNonEmptyParagraphs(XWPFDocument wordDocument) {
+        List<ParagraphWrapper> bodyElements = getRawParagraphs(wordDocument);
+        return bodyElements.stream()
+                .filter(WordPreprocessor::paragraphHasContent)
+                .collect(Collectors.toList());
+    }
+
+    public List<ParagraphWrapper> getNonEmptyParagraphs() {
+        return isWordDocumentEmpty() ? new ArrayList<>() : paragraphWrappers;
+    }
+
+    private static List<ParagraphWrapper> getRawParagraphs(XWPFDocument wordDocument) {
         List<ParagraphWrapper> bodyElements = new ArrayList<>();
 
-        if (isWordDocumentEmpty()) return bodyElements;
+        if (wordDocument == null) return bodyElements;
 
         for (int i = 0; i < wordDocument.getBodyElements().size(); i++) {
             try {
@@ -79,8 +90,8 @@ public class WordPreprocessor {
     public Map<Integer, Integer> getPostParagraphBlanks() {
         Map<Integer, Integer> postParagraphBlanks = new HashMap<>();
         int actualParagraph = 0;
-        List<ParagraphWrapper> paragraphs = getRawParagraphs();
-        for (ParagraphWrapper paragraph : paragraphs) {
+        List<ParagraphWrapper> paragraphWrappers = getRawParagraphs(wordDocument);
+        for (ParagraphWrapper paragraph : paragraphWrappers) {
             boolean hasContent = paragraphHasContent(paragraph);
             if (hasContent) {
                 postParagraphBlanks.put(actualParagraph, 1);
@@ -113,8 +124,13 @@ public class WordPreprocessor {
         return numberedParagraphs;
     }
 
-    public Map<Integer, UnitNumbering> getUnitNumberings(List<ParagraphWrapper> paragraphWrappers) {
-        if (isWordDocumentEmpty()) return new HashMap<>();
+    public Map<Integer, Boolean> getNumberedParagraphs() {
+        return isWordDocumentEmpty() ? new HashMap<>() : numberedParagraphs;
+    }
+
+    public static Map<Integer, UnitNumbering> getUnitNumberings(XWPFDocument wordDocument,
+                                                                List<ParagraphWrapper> paragraphWrappers) {
+        if (wordDocument == null) return new HashMap<>();
 
         NumberingParser numberingParser = new NumberingParser(wordDocument.getNumbering());
         List<XWPFParagraph> paragraphs = paragraphWrappers.stream()
@@ -123,8 +139,11 @@ public class WordPreprocessor {
         return numberingParser.getParagraphsNumbering(paragraphs);
     }
 
-    public List<String> getParagraphTexts(Map<Integer, Boolean> numberedParagraphs,
-                                          Map<Integer, UnitNumbering> unitNumberings) {
+    public Map<Integer, UnitNumbering> getUnitNumberings() {
+        return isWordDocumentEmpty() ? new HashMap<>() : unitNumberings;
+    }
+
+    public List<String> getParagraphTexts() {
 
         if (isWordDocumentEmpty()) return new ArrayList<>();
 
