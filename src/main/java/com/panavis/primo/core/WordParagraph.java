@@ -76,8 +76,8 @@ public abstract class WordParagraph {
         return paragraphText.split(" ")[0];
     }
 
-    public boolean isFirstRunBold(int paragraphIndex) {
-        return isFirstRunBold(getParagraph(paragraphIndex));
+    public boolean isRunBold(int paragraphIndex, int runIndex) {
+        return isRunBold(getParagraph(paragraphIndex), runIndex);
     }
 
     public static boolean hasOneRun(ParagraphWrapper paragraphWrapper) {
@@ -86,7 +86,7 @@ public abstract class WordParagraph {
 
     public static RunWrapper getNthRun(ParagraphWrapper paragraphWrapper, int runIndex) {
         List<RunWrapper> paragraphRuns = paragraphWrapper.getRuns();
-        return paragraphRuns.get(runIndex);
+        return runIndex < paragraphRuns.size() ? paragraphRuns.get(runIndex) : null;
     }
 
     public static String getNthRunText(ParagraphWrapper paragraphWrapper, int runIndex) {
@@ -106,18 +106,24 @@ public abstract class WordParagraph {
         return underlinePattern == 1 || underlinePattern == 4;
     }
 
-    public static boolean isFirstRunBold(ParagraphWrapper paragraphWrapper) {
-        RunWrapper firstRun = WordParagraph.getNthRun(paragraphWrapper, 0);
+    public static boolean isRunBold(ParagraphWrapper paragraphWrapper, int runIndex) {
+        RunWrapper run = WordParagraph.getNthRun(paragraphWrapper, runIndex);
+        if (run == null) return false;
+
         boolean hasHeadingStyle = false;
         if (paragraphWrapper.getParagraph().getStyle() != null)
             hasHeadingStyle = paragraphWrapper.getParagraph().getStyle().equals("Heading1");
-        String text = firstRun.getText();
+        String text = run.getText();
         boolean isCaseSensitive = !text.toLowerCase().equals(text.toUpperCase());
-        return (firstRun.getRun().isBold() || hasHeadingStyle) && isCaseSensitive;
+        return (run.getRun().isBold() || hasHeadingStyle) && isCaseSensitive;
     }
 
     public boolean isListedParagraph(int paragraphIndex) {
         String style = getUnitNumbering(paragraphIndex).style;
         return style.equals(LIST_PARAGRAPH);
+    }
+
+    public boolean hasNumbering(int paragraphIndex) {
+        return !getUnitNumbering(paragraphIndex).current.isEmpty();
     }
 }
