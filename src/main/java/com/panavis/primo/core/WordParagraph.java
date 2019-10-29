@@ -111,7 +111,9 @@ public abstract class WordParagraph {
         boolean hasHeadingStyle = false;
         if (paragraphWrapper.getParagraph().getStyle() != null)
             hasHeadingStyle = paragraphWrapper.getParagraph().getStyle().equals("Heading1");
-        return firstRun.getRun().isBold() || hasHeadingStyle;
+        String text = firstRun.getText();
+        boolean isCaseSensitive = !text.toLowerCase().equals(text.toUpperCase());
+        return (firstRun.getRun().isBold() || hasHeadingStyle) && isCaseSensitive;
     }
 
     public boolean isListedParagraph(int paragraphIndex) {
